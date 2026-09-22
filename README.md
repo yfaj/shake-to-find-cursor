@@ -4,6 +4,8 @@ Shake your mouse and the cursor grows big so you can find it. For Windows.
 
 Native Rust, single `.exe` (~3.4 MB), no runtime dependencies.
 
+![Settings window](assets/screenshot.png)
+
 ## Install
 
 Grab `shake-to-find-cursor.exe` from [Releases](https://github.com/yfaj/shake-to-find-cursor/releases) and run it. It lives in your tray.
