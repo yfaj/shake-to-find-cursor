@@ -8,6 +8,7 @@ mod detector;
 mod fullscreen;
 mod hook;
 mod settings;
+mod startup;
 mod tray;
 mod ui;
 

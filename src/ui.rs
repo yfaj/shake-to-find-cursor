@@ -191,6 +191,7 @@ impl eframe::App for App {
                     let mut su = cfg.run_on_startup;
                     if ui.checkbox(&mut su, "Launch at login").changed() {
                         cfg.run_on_startup = su;
+                        crate::startup::set(su);
                         changed = true;
                     }
 
