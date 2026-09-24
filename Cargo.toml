@@ -1,6 +1,6 @@
 [package]
 name = "shake-to-find-cursor"
-version = "0.1.0"
+version = "0.1.2"
 edition = "2024"
 description = "macOS-style shake-to-find cursor for Windows. Native, single exe."
 
