@@ -66,6 +66,8 @@ struct Cache {
     // cursor id -> [handle; SCALE_STEPS]
     map: HashMap<u32, Vec<isize>>,
     scales: Vec<f64>,
+    // theme file paths the cache was built from (for change detection)
+    theme: HashMap<&'static str, Option<String>>,
 }
 
 static FRAMES: Mutex<Option<Cache>> = Mutex::new(None);
@@ -79,7 +81,27 @@ pub fn init_caches(magnification: f64) {
     if CACHED.load(Ordering::Relaxed) && (last - magnification).abs() < 1e-3 {
         return;
     }
+    build(magnification);
+}
 
+/// Rebuilds the cache when the user's cursor theme changed since the last
+/// build (e.g. they switched schemes in Windows settings while we run).
+/// Cheap: one registry read. Call periodically from a watcher thread.
+pub fn rebuild_if_theme_changed(magnification: f64) {
+    let current = read_theme_paths();
+    let changed = {
+        let guard = FRAMES.lock().unwrap();
+        match guard.as_ref() {
+            None => true,
+            Some(cache) => cache.theme != current,
+        }
+    };
+    if changed {
+        build(magnification);
+    }
+}
+
+fn build(magnification: f64) {
     // Non-linear scale table: power bias packs more frames near 1.0.
     let peak = magnification * 1.05;
     let scales: Vec<f64> = (0..SCALE_STEPS)
@@ -115,7 +137,7 @@ pub fn init_caches(magnification: f64) {
             }
         }
     }
-    *guard = Some(Cache { map, scales });
+    *guard = Some(Cache { map, scales, theme: theme_paths });
     drop(guard);
 
     LAST_FACTOR_BITS.store(magnification.to_bits(), Ordering::Relaxed);

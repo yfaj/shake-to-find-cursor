@@ -33,17 +33,25 @@ fn main() {
     let dirty = Arc::new(AtomicBool::new(false));
     let rebuild = Arc::new(AtomicBool::new(false));
 
-    // Cursor frame cache build + magnification rebuild watcher (background).
+    // Cursor frame cache build + magnification/theme-change watcher (background).
     {
         let cfg = cfg.clone();
         let rebuild = rebuild.clone();
         std::thread::spawn(move || {
             let factor = cfg.read().unwrap().magnification;
             cursor_helper::init_caches(factor);
+            let mut theme_check: u32 = 0;
             loop {
                 if rebuild.swap(false, Ordering::Relaxed) {
                     let factor = cfg.read().unwrap().magnification;
                     cursor_helper::init_caches(factor);
+                }
+                // Poll the cursor theme every ~5s; rebuild if the user switched schemes.
+                theme_check += 1;
+                if theme_check >= 25 {
+                    theme_check = 0;
+                    let factor = cfg.read().unwrap().magnification;
+                    cursor_helper::rebuild_if_theme_changed(factor);
                 }
                 std::thread::sleep(std::time::Duration::from_millis(200));
             }
